@@ -213,10 +213,23 @@ input:focus{border-color:#FFD700;box-shadow:0 0 0 3px rgba(255,215,0,0.1);}
 <div class="page active" id="page-palpite">
 <div class="wrap">
   <div id="deadline-banner"></div>
+
+  <!-- ALERTA URGENTE -->
+  <div style="background:rgba(200,16,46,0.2);border:2px solid #C2362C;border-radius:12px;padding:16px 18px;margin-bottom:14px;text-align:center;">
+    <div style="font-size:22px;margin-bottom:6px;">⚠️🚨⚠️</div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:20px;color:#ff6b6b;letter-spacing:2px;margin-bottom:8px;">ATENÇÃO — REFAÇA SEU PALPITE!</div>
+    <div style="font-size:13px;color:#FFD700;line-height:1.7;">
+      O chaveamento foi corrigido conforme o bracket oficial da FIFA.<br>
+      <strong>Cada participante pode refazer seu palpite 1 vez antes do prazo.</strong><br>
+      ⏱ Prazo final: <strong>13h45 de 29/06/2026</strong> (antes de Brasil × Japão).<br>
+      <span style="color:#C8D8FF;font-size:12px;">Após o prazo nenhum palpite novo ou alteração será aceito.</span>
+    </div>
+  </div>
+
   <div class="rules">
     <strong>📋 Regras:</strong> Cada seleção acertada = <strong>1 ponto</strong>.
-    O jogo <strong>África do Sul × Canadá</strong> já está em andamento — palpite bloqueado, ninguém ganha esse ponto.
-    Máximo possível: <strong>30 pontos</strong>. Prazo para palpites: <strong>13h45 do dia 29/06/2026</strong>.
+    O jogo <strong>África do Sul × Canadá</strong> já encerrado — Canadá venceu.
+    Máximo possível: <strong>30 pontos</strong>. Prazo: <strong>13h45 de 29/06/2026</strong>.
     Em caso de empate nas semifinais, os empatados disputam palpitando na vitória e resultado final.
   </div>
   <div class="card">
@@ -656,20 +669,25 @@ function confirmar(){
   document.getElementById('err-tel').style.display=tel?'none':'block';   if(!tel)  ok=false;
   if(!ok){document.getElementById('erg').style.display='block';window.scrollTo({top:0,behavior:'smooth'});return;}
 
-  // Verifica duplicata por nome ou telefone
+  // Verifica duplicata: permite no máximo 2 palpites por pessoa (1 original + 1 ajuste)
   const nomeNorm=nome.toLowerCase().trim();
-  const telNorm=tel.replace(/\D/g,'');
-  const duplicado=cached.find(e=>{
+  const telNorm=tel.replace(/[^0-9]/g,'');
+  const palpitesExistentes=cached.filter(e=>{
     const enNorm=(e.nome||'').toLowerCase().trim();
-    const etNorm=(e.tel||'').replace(/\D/g,'');
-    return enNorm===nomeNorm || (telNorm.length>=8 && etNorm===telNorm);
+    const etNorm=(e.tel||'').replace(/[^0-9]/g,'');
+    return enNorm===nomeNorm || (telNorm.length>=8 && etNorm.length>=8 && etNorm===telNorm);
   });
-  if(duplicado){
+  if(palpitesExistentes.length>=2){
     const erg=document.getElementById('erg');
-    erg.textContent='⚠️ "'+ duplicado.nome +'" já tem palpite cadastrado com esses dados. Cada pessoa pode palpitar apenas uma vez.';
+    erg.textContent='⛔ "'+palpitesExistentes[0].nome+'" já utilizou o ajuste permitido. Cada pessoa pode palpitar no máximo 2 vezes (1 original + 1 ajuste).';
     erg.style.display='block';
     window.scrollTo({top:0,behavior:'smooth'});
     return;
+  }
+  if(palpitesExistentes.length===1){
+    // Avisa que está usando o ajuste único
+    const confirmaAjuste=confirm('Você já tem um palpite cadastrado. Deseja usar seu ajuste único para refazer? Esta é sua última chance de alterar.');
+    if(!confirmaAjuste) return;
   }
 
   if(totalPicks()<TOTAL){
